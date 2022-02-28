@@ -3,92 +3,49 @@ import pandas as pd
 import os
 import env 
 
-# %%
-titanic_url = f'mysql+pymysql://{env.user}:{env.password}@{env.host}/titanic_db'
-iris_url = f'mysql+pymysql://{env.user}:{env.password}@{env.host}/iris_db'
-telco_url = f'mysql+pymysql://{env.user}:{env.password}@{env.host}/telco_churn'
 
-# %%
-# Get titanic data
+database_url_base = f'mysql+pymysql://{env.user}:{env.password}@{env.host}/'
 
-def get_titanic_data(use_cache = True):
-    filename = 'titanic.csv'
-    
-    if os.path.exists(filename):
-        print('Using cached csv file...')
-        return pd.read_csv(filename)
 
-    print('Acquiring data from SQL Database')
-    titanic_url = f'mysql+pymysql://{env.user}:{env.password}@{env.host}/titanic_db'
-    query = '''
-    SELECT * 
-    FROM passengers
 
-    '''
-
-    print('Getting a fresh copy from SQL database...')
-    df = pd.read_sql(query, titanic_url)
-    print('Saving to csv...')
-    df.to_csv(filename, index=False)
+def get_titanic_data(use_cache=True):
+    if os.path.exists('titanic.csv') and use_cache:
+        print('Using cached csv')
+        return pd.read_csv('titanic.csv')
+    print('Acquiring data from SQL database')
+    query = 'SELECT * FROM passengers'
+    df = pd.read_sql(query, database_url_base + 'titanic_db')
+    df.to_csv('titanic.csv', index=False)
     return df
 
-get_titanic_data()
-
-
-# %%
-
-#Get Iris data
-def get_iris_data(use_cache = True):
-    filename = 'iris_db.csv'
-    
-    if os.path.exists(filename):
-        print('Using cached csv file...')
-        return pd.read_csv(filename)
-
-    print('Acquiring data from SQL Database')
-    titanic_url = f'mysql+pymysql://{env.user}:{env.password}@{env.host}/iris_db'
+def get_iris_data(use_cache=True):
+    if os.path.exists('iris.csv') and use_cache:
+        print('Using cached csv')
+        return pd.read_csv('iris.csv')
+    print('Acquiring data from SQL database')
     query = '''
-    SELECT * 
-    FROM species
-
+    SELECT *
+    FROM measurements
+    JOIN species USING (species_id)
     '''
-
-    print('Getting a fresh copy from SQL database...')
-    df = pd.read_sql(query, iris_url)
-    print('Saving to csv...')
-    df.to_csv(filename, index=False)
+    df = pd.read_sql(query, database_url_base + 'iris_db')
+    df.to_csv('iris.csv', index=False)
     return df
 
-get_iris_data()
-
-# %%
-
-#Get Telco data
-def get_telco_data(use_cache = True):
-    filename = 'telco_churn.csv'
-    
-    if os.path.exists(filename):
-        print('Using cached csv file...')
-        return pd.read_csv(filename)
-
-    print('Acquiring data from SQL Database')
-    titanic_url = f'mysql+pymysql://{env.user}:{env.password}@{env.host}/telco_churn'
+def get_telco_data(use_cache=True):
+    if os.path.exists('telco.csv') and use_cache:
+        print('Using cached csv')
+        return pd.read_csv('telco.csv')
+    print('Acquiring data from SQL database')
     query = '''
-    SELECT * 
+    SELECT *
     FROM customers
-    JOIN contract_types USING(contract_type_id)
     JOIN internet_service_types USING (internet_service_type_id)
+    JOIN contract_types USING (contract_type_id)
     JOIN payment_types USING (payment_type_id)
-
     '''
-
-    print('Getting a fresh copy from SQL database...')
-    df = pd.read_sql(query, telco_url)
-    print('Saving to csv...')
-    df.to_csv(filename, index=False)
-    return df
-
-get_telco_data()
-# %%
+    df = pd.read_sql(query, database_url_base + 'telco_churn')
+    df.to_csv('telco.csv', index=False)
+    return 
 
 
